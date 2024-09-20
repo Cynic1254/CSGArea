@@ -25,7 +25,7 @@ public class DualWorlds : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core",
+				"Core"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -38,7 +38,9 @@ public class DualWorlds : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-                "GeometryScriptingCore"
+                "GeometryScriptingCore",
+                "GeometryFramework",
+                "PhysicsCore"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
