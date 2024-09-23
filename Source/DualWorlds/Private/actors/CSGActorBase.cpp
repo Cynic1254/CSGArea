@@ -8,6 +8,7 @@
 #include "Components/CSGAreaComponent.h"
 #include "GeometryScript/MeshAssetFunctions.h"
 #include "GeometryScript/MeshBasicEditFunctions.h"
+#include "GeometryScript/MeshBooleanFunctions.h"
 #include "GeometryScript/MeshPrimitiveFunctions.h"
 
 
@@ -16,15 +17,12 @@ ACSGActorBase::ACSGActorBase()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	Mesh = CreateDefaultSubobject<UDynamicMeshComponent>("Mesh");
 }
 
 // Called when the game starts or when spawned
 void ACSGActorBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 bool ACSGActorBase::ShouldPerformCSG()
@@ -45,26 +43,42 @@ void ACSGActorBase::RebuildMesh()
 	TArray<UPrimitiveComponent*> OverlappingComponents;
 	GetOverlappingComponents(OverlappingComponents);
 
-	auto DynamicMesh = Mesh->GetDynamicMesh();
+	const auto DynamicMesh = DynamicMeshComponent->GetDynamicMesh();
+	DynamicMesh->Reset();
 
 	UDynamicMeshPool* MeshPool = NewObject<UDynamicMeshPool>();
 
 	UDynamicMesh* BaseMesh = GetFullMesh();
 
-	TArray<UDynamicMesh> MeshPieces;
-	
+	TArray<UDynamicMesh*> MeshPieces;
+
 	for (auto OverlappingComponent : OverlappingComponents)
 	{
+		UE_LOG(LogTemp, Verbose, TEXT("Found colliding shape"));
 		if (auto* Component = Cast<UCSGAreaComponent>(OverlappingComponent))
 		{
 			UDynamicMesh* TempMesh = MeshPool->RequestMesh();
 
-			FGeometryScriptPrimitiveOptions options{
-				
-			};
-			
-			//UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendSphereBox(TempMesh, {}, )
+			UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendSphereBox(
+				TempMesh, {}, {}, Component->GetScaledSphereRadius());
+
+			UGeometryScriptLibrary_MeshBooleanFunctions::ApplyMeshBoolean(
+				TempMesh, Component->GetComponentTransform(),
+				BaseMesh, DynamicMeshComponent->GetComponentTransform(),
+				EGeometryScriptBooleanOperation::Intersection,
+				{true, true, 0.01, true});
+
+			MeshPieces.Push(TempMesh);
 		}
+	}
+
+	for (auto Piece : MeshPieces)
+	{
+		UGeometryScriptLibrary_MeshBooleanFunctions::ApplyMeshBoolean(
+			DynamicMesh, {},
+			Piece, {},
+			EGeometryScriptBooleanOperation::Union,
+			{true, true, 0.01, true});
 	}
 }
 
@@ -72,7 +86,6 @@ void ACSGActorBase::RebuildMesh()
 void ACSGActorBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
 	RebuildMesh();
 }
-

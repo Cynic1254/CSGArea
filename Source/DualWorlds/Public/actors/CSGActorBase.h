@@ -33,9 +33,6 @@ protected:
 	void LoadSettings();
 	
 	void RebuildMesh();
-	
-	UPROPERTY()
-	TObjectPtr<UDynamicMeshComponent> Mesh;
 
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
 };
