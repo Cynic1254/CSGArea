@@ -54,17 +54,16 @@ void ACSGActorBase::RebuildMesh()
 
 	for (auto OverlappingComponent : OverlappingComponents)
 	{
-		UE_LOG(LogTemp, Verbose, TEXT("Found colliding shape"));
 		if (auto* Component = Cast<UCSGAreaComponent>(OverlappingComponent))
 		{
 			UDynamicMesh* TempMesh = MeshPool->RequestMesh();
 
 			UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendSphereBox(
-				TempMesh, {}, {}, Component->GetScaledSphereRadius());
+				TempMesh, {}, Component->GetComponentTransform(), Component->GetUnscaledSphereRadius());
 
 			UGeometryScriptLibrary_MeshBooleanFunctions::ApplyMeshBoolean(
-				TempMesh, Component->GetComponentTransform(),
-				BaseMesh, DynamicMeshComponent->GetComponentTransform(),
+				TempMesh, {},
+				BaseMesh, GetTransform(),
 				EGeometryScriptBooleanOperation::Intersection,
 				{true, true, 0.01, true});
 
@@ -75,7 +74,7 @@ void ACSGActorBase::RebuildMesh()
 	for (auto Piece : MeshPieces)
 	{
 		UGeometryScriptLibrary_MeshBooleanFunctions::ApplyMeshBoolean(
-			DynamicMesh, {},
+			DynamicMesh, GetTransform(),
 			Piece, {},
 			EGeometryScriptBooleanOperation::Union,
 			{true, true, 0.01, true});
