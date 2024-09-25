@@ -40,11 +40,18 @@ protected:
 
 	void RebuildMesh(UDynamicMesh* OutMesh, UDynamicMesh* FullMesh);
 
+	void ReverseRebuildMesh(UDynamicMesh* OutMesh);
+
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
 
 	/// @brief Collision options to use when constructing the collision shape
 	UPROPERTY(EditAnywhere)
 	FGeometryScriptCollisionFromMeshOptions CollisionOptions;
+
+	/// @brief Whether CSG should be based on intersection or subtractive
+	/// False means CSG will be based on Intersection
+	UPROPERTY(EditAnywhere)
+	bool bDoReverseCSG = false;
 
 public:
 	// Called every frame

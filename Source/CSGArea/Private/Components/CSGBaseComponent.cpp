@@ -82,6 +82,31 @@ void UCSGBaseComponent::RebuildMesh(UDynamicMesh* OutMesh, UDynamicMesh* FullMes
 	}
 }
 
+void UCSGBaseComponent::ReverseRebuildMesh(UDynamicMesh* OutMesh)
+{
+	TArray<UPrimitiveComponent*> Overlapping;
+	GetOwner()->GetOverlappingComponents(Overlapping);
+
+	const auto MeshPool = NewObject<UDynamicMeshPool>();
+
+	for (const auto OverlappingComponent : Overlapping)
+	{
+		if (const auto Component = Cast<UCSGAreaComponent>(OverlappingComponent))
+		{
+			UDynamicMesh* TempMesh = MeshPool->RequestMesh();
+
+			UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendSphereBox(
+				TempMesh, {}, Component->GetComponentTransform(), Component->GetUnscaledSphereRadius());
+
+			UGeometryScriptLibrary_MeshBooleanFunctions::ApplyMeshBoolean(
+				OutMesh, {},
+				TempMesh, GetComponentTransform(),
+				EGeometryScriptBooleanOperation::Subtract,
+				{true, true, 0.01, true});
+		}
+	}
+}
+
 // Called every frame
 void UCSGBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                       FActorComponentTickFunction* ThisTickFunction)
@@ -93,15 +118,27 @@ void UCSGBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	if (TickType == LEVELTICK_All)
 	{
 		const auto MeshPool = NewObject<UDynamicMeshPool>();
-		const auto VisualMesh = MeshPool->RequestMesh();
-		GetVisualMesh(VisualMesh);
-
-		RebuildMesh(GetDynamicMesh(), VisualMesh);
 
 		const auto CollisionMesh = MeshPool->RequestMesh();
 		GetCollisionMesh(CollisionMesh);
 
-		RebuildMesh(CollisionMesh, CollisionMesh);
+		if (bDoReverseCSG)
+		{
+			GetVisualMesh(GetDynamicMesh()->Reset());
+
+			ReverseRebuildMesh(GetDynamicMesh());
+
+			ReverseRebuildMesh(CollisionMesh);
+		}
+		else
+		{
+			const auto VisualMesh = MeshPool->RequestMesh();
+			GetVisualMesh(VisualMesh);
+
+			RebuildMesh(GetDynamicMesh(), VisualMesh);
+
+			RebuildMesh(CollisionMesh, CollisionMesh);
+		}
 
 		UGeometryScriptLibrary_CollisionFunctions::SetDynamicMeshCollisionFromMesh(
 			CollisionMesh, this, CollisionOptions);
