@@ -10,13 +10,16 @@
  * 
  */
 UCLASS(config = PluginSettings)
-class DUALWORLDS_API UPluginSettings : public UObject
+class CSGAREA_API UPluginSettings : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	UPluginSettings() {};
+	UPluginSettings()
+	{
+	};
 
+	/// @brief Collision channel to use for detecting CSG collisions
 	UPROPERTY(Config, EditAnywhere, Category = "Collision")
 	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_WorldStatic;
 };

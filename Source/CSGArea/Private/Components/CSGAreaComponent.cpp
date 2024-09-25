@@ -14,9 +14,10 @@ UCSGAreaComponent::UCSGAreaComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	CollisionChannel = GetDefault<UPluginSettings>()->CollisionChannel;
-	
-	SetCollisionResponseToAllChannels(ECR_Ignore);
-	SetCollisionResponseToChannel(CollisionChannel, ECR_Overlap);
+
+	UCSGAreaComponent::SetCollisionResponseToAllChannels(ECR_Ignore);
+	UCSGAreaComponent::SetCollisionResponseToChannel(CollisionChannel, ECR_Overlap);
+	UCSGAreaComponent::SetCollisionObjectType(CollisionChannel);
 }
 
 
@@ -26,7 +27,6 @@ void UCSGAreaComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
 }
 
 
@@ -38,4 +38,3 @@ void UCSGAreaComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 	// ...
 }
-

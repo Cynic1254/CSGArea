@@ -2,9 +2,9 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "1.0",
-	"FriendlyName": "Dual Worlds",
+	"FriendlyName": "CSGArea",
 	"Description": "This plugin adds \"gates\" to see and interact with hidden objects, this can be used to implement mechanics like Skyward Sword's \"Time Gate\"",
-	"Category": "Other",
+	"Category": "CSG",
 	"CreatedBy": "Cynic",
 	"CreatedByURL": "",
 	"DocsURL": "",
@@ -16,7 +16,7 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "DualWorlds",
+			"Name": "CSGArea",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}

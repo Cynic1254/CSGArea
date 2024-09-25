@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-class FDualWorldsModule : public IModuleInterface
+class FCSGAreaModule : public IModuleInterface
 {
 public:
 
