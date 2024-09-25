@@ -144,3 +144,4 @@ void UCSGBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 			CollisionMesh, this, CollisionOptions);
 	}
 }
+

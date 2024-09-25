@@ -27,7 +27,7 @@ protected:
 	/// @warning This function must be implemented for the class to work
 	/// 
 	/// @param OutMesh Output dynamic mesh, will be empty when function gets called
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintNativeEvent)
 	void GetVisualMesh(UDynamicMesh* OutMesh);
 
 	/// Function used for retrieving the Collision Mesh of the component,
@@ -35,7 +35,7 @@ protected:
 	/// @warning This function must be implemented for the class to work
 	/// 
 	/// @param OutMesh Output dynamic mesh, will be empty when function gets called
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintNativeEvent)
 	void GetCollisionMesh(UDynamicMesh* OutMesh);
 
 	void RebuildMesh(UDynamicMesh* OutMesh, UDynamicMesh* FullMesh);
@@ -57,4 +57,15 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
+
+protected:
+	virtual void GetVisualMesh_Implementation(UDynamicMesh* OutMesh)
+	{
+		unimplemented();
+	}
+
+	virtual void GetCollisionMesh_Implementation(UDynamicMesh* OutMesh)
+	{
+		unimplemented();
+	}
 };
