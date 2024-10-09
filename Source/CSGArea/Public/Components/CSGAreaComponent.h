@@ -25,4 +25,12 @@ protected:
 	virtual void BeginPlay() override;
 
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
+
+#if WITH_EDITORONLY_DATA
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> SphereComponent;
+#endif
+
+	virtual void OnRegister() override;
+	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override;
 };

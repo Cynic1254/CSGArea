@@ -3,7 +3,6 @@
 
 #include "Components/CSGBaseComponent.h"
 
-#include "PluginSettings.h"
 #include "Components/CSGAreaComponent.h"
 #include "GeometryScript/CollisionFunctions.h"
 #include "GeometryScript/MeshBooleanFunctions.h"
@@ -17,47 +16,60 @@ UCSGBaseComponent::UCSGBaseComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.bStartWithTickEnabled = true;
-
-	CollisionChannel = GetDefault<UPluginSettings>()->CollisionChannel;
-
-	UCSGBaseComponent::SetCollisionResponseToAllChannels(ECR_Ignore);
-	UCSGBaseComponent::SetCollisionResponseToChannel(CollisionChannel, ECR_Overlap);
-	UCSGBaseComponent::SetCollisionObjectType(CollisionChannel);
 }
-
 
 // Called when the game starts
 void UCSGBaseComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
+	int i = 0;
+	for (; i < Materials.Num(); ++i)
+	{
+		SetMaterial(i, Materials[i]);
+	}
+	SetMaterial(i, CSGMaterial);
+
+	MarkRenderStateDirty();
+
+	MeshPool = NewObject<UDynamicMeshPool>(this);
 }
 
 
-void UCSGBaseComponent::RebuildMesh(UDynamicMesh* OutMesh, UDynamicMesh* FullMesh)
+void UCSGBaseComponent::RebuildMesh(UDynamicMesh* OutMesh, UDynamicMesh* FullMesh) const
 {
 	const auto DynamicMesh = OutMesh;
 
 	TArray<UPrimitiveComponent*> Overlapping;
 	GetOwner()->GetOverlappingComponents(Overlapping);
 
-	UDynamicMeshPool* MeshPool = NewObject<UDynamicMeshPool>();
-
 	UDynamicMesh* BaseMesh = FullMesh;
 
 	TArray<UDynamicMesh*> MeshPieces;
 
-	UE_LOG(LogTemp, Log, TEXT("Rebuilding mesh: %i"), Overlapping.Num());
-
-	for (auto OverlappingComponent : Overlapping)
+	for (const auto OverlappingComponent : Overlapping)
 	{
-		if (auto* Component = Cast<UCSGAreaComponent>(OverlappingComponent))
+		if (const auto* Component = Cast<UCSGAreaComponent>(OverlappingComponent))
 		{
 			UDynamicMesh* TempMesh = MeshPool->RequestMesh();
 
 			UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendSphereBox(
 				TempMesh, {}, Component->GetComponentTransform(), Component->GetUnscaledSphereRadius());
+
+			int MaterialIndex = Materials.Num();
+			TempMesh->EditMesh([MaterialIndex](FDynamicMesh3& Mesh)
+			{
+				// ReSharper disable once CppTooWideScope
+				const auto Material = Mesh.Attributes()->GetMaterialID();
+
+				if (Material)
+				{
+					for (const auto Triangle : Mesh.TriangleIndicesItr())
+					{
+						Material->SetValue(Triangle, MaterialIndex);
+					}
+				}
+			});
 
 			UGeometryScriptLibrary_MeshBooleanFunctions::ApplyMeshBoolean(
 				TempMesh, {},
@@ -72,7 +84,7 @@ void UCSGBaseComponent::RebuildMesh(UDynamicMesh* OutMesh, UDynamicMesh* FullMes
 	//only reset the dynamic mesh now since the OutMesh might also be used for FullMesh
 	DynamicMesh->Reset();
 
-	for (auto Piece : MeshPieces)
+	for (const auto Piece : MeshPieces)
 	{
 		UGeometryScriptLibrary_MeshBooleanFunctions::ApplyMeshBoolean(
 			DynamicMesh, GetComponentTransform(),
@@ -82,12 +94,10 @@ void UCSGBaseComponent::RebuildMesh(UDynamicMesh* OutMesh, UDynamicMesh* FullMes
 	}
 }
 
-void UCSGBaseComponent::ReverseRebuildMesh(UDynamicMesh* OutMesh)
+void UCSGBaseComponent::ReverseRebuildMesh(UDynamicMesh* OutMesh) const
 {
 	TArray<UPrimitiveComponent*> Overlapping;
 	GetOwner()->GetOverlappingComponents(Overlapping);
-
-	const auto MeshPool = NewObject<UDynamicMeshPool>();
 
 	for (const auto OverlappingComponent : Overlapping)
 	{
@@ -98,9 +108,24 @@ void UCSGBaseComponent::ReverseRebuildMesh(UDynamicMesh* OutMesh)
 			UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendSphereBox(
 				TempMesh, {}, Component->GetComponentTransform(), Component->GetUnscaledSphereRadius());
 
+			int MaterialIndex = Materials.Num();
+			TempMesh->EditMesh([MaterialIndex](FDynamicMesh3& Mesh)
+			{
+				// ReSharper disable once CppTooWideScope
+				const auto Material = Mesh.Attributes()->GetMaterialID();
+
+				if (Material)
+				{
+					for (const auto Triangle : Mesh.TriangleIndicesItr())
+					{
+						Material->SetValue(Triangle, MaterialIndex);
+					}
+				}
+			});
+
 			UGeometryScriptLibrary_MeshBooleanFunctions::ApplyMeshBoolean(
-				OutMesh, {},
-				TempMesh, GetComponentTransform(),
+				OutMesh, GetComponentTransform(),
+				TempMesh, {},
 				EGeometryScriptBooleanOperation::Subtract,
 				{true, true, 0.01, true});
 		}
@@ -113,12 +138,8 @@ void UCSGBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
-
 	if (TickType == LEVELTICK_All)
 	{
-		const auto MeshPool = NewObject<UDynamicMeshPool>();
-
 		const auto CollisionMesh = MeshPool->RequestMesh();
 		GetCollisionMesh(CollisionMesh);
 
@@ -143,5 +164,6 @@ void UCSGBaseComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		UGeometryScriptLibrary_CollisionFunctions::SetDynamicMeshCollisionFromMesh(
 			CollisionMesh, this, CollisionOptions);
 	}
-}
 
+	MeshPool->ReturnAllMeshes();
+}

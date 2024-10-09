@@ -38,20 +38,26 @@ protected:
 	UFUNCTION(BlueprintNativeEvent)
 	void GetCollisionMesh(UDynamicMesh* OutMesh);
 
-	void RebuildMesh(UDynamicMesh* OutMesh, UDynamicMesh* FullMesh);
+	void RebuildMesh(UDynamicMesh* OutMesh, UDynamicMesh* FullMesh) const;
 
-	void ReverseRebuildMesh(UDynamicMesh* OutMesh);
-
-	TEnumAsByte<ECollisionChannel> CollisionChannel;
+	void ReverseRebuildMesh(UDynamicMesh* OutMesh) const;
 
 	/// @brief Collision options to use when constructing the collision shape
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Collision | CSG")
 	FGeometryScriptCollisionFromMeshOptions CollisionOptions;
 
 	/// @brief Whether CSG should be based on intersection or subtractive
 	/// False means CSG will be based on Intersection
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Collision | CSG")
 	bool bDoReverseCSG = false;
+
+	UPROPERTY(EditAnywhere, Category = "Visual")
+	TArray<TObjectPtr<UMaterialInterface>> Materials;
+	UPROPERTY(EditAnywhere, Category = "Visual")
+	TObjectPtr<UMaterialInterface> CSGMaterial;
+
+	UPROPERTY()
+	TObjectPtr<UDynamicMeshPool> MeshPool;
 
 public:
 	// Called every frame

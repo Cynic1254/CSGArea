@@ -43,9 +43,18 @@ public class CSGArea : ModuleRules
 				"GeometryScriptingCore",
 				"GeometryFramework",
 				"PhysicsCore"
+
 				// ... add private dependencies that you statically link with here ...	
 			}
 		);
+
+		if (Target.bBuildEditor)
+			PrivateDependencyModuleNames.AddRange(
+				new[]
+				{
+					"Settings"
+				}
+			);
 
 
 		DynamicallyLoadedModuleNames.AddRange(

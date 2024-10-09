@@ -18,6 +18,23 @@ UCSGAreaComponent::UCSGAreaComponent()
 	UCSGAreaComponent::SetCollisionResponseToAllChannels(ECR_Ignore);
 	UCSGAreaComponent::SetCollisionResponseToChannel(CollisionChannel, ECR_Overlap);
 	UCSGAreaComponent::SetCollisionObjectType(CollisionChannel);
+
+#if WITH_EDITORONLY_DATA
+	if (!IsRunningGame())
+	{
+		SphereComponent = CreateDefaultSubobject<UStaticMeshComponent>("Preview Mesh");
+		SphereComponent->SetupAttachment(this);
+		SphereComponent->SetStaticMesh(
+			ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("/Engine/BasicShapes/Sphere.Sphere")).Object);
+		SphereComponent->SetHiddenInGame(true);
+		SphereComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+		SphereComponent->bIsEditorOnly = true;
+		SphereComponent->SetMaterial(0, GetDefault<UPluginSettings>()->DefaultAreaMaterial.Get());
+
+		SphereComponent->SetRelativeScale3D(FVector{SphereRadius / 50.0f});
+	}
+
+#endif
 }
 
 
@@ -29,12 +46,35 @@ void UCSGAreaComponent::BeginPlay()
 	// ...
 }
 
+void UCSGAreaComponent::OnRegister()
+{
+	Super::OnRegister();
+
+#if WITH_EDITORONLY_DATA
+	if (!IsRunningGame())
+	{
+		SphereComponent->SetRelativeScale3D(FVector{SphereRadius / 50});
+	}
+#endif
+}
+
+void UCSGAreaComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
+{
+	Super::OnComponentDestroyed(bDestroyingHierarchy);
+
+#if WITH_EDITORONLY_DATA
+	if (!IsRunningGame())
+	{
+		SphereComponent->DestroyComponent();
+	}
+#endif
+}
+
 
 // Called every frame
 void UCSGAreaComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                       FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
 	// ...
 }
