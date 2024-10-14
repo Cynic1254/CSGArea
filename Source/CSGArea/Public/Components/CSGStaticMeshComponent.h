@@ -7,7 +7,7 @@
 #include "CSGStaticMeshComponent.generated.h"
 
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent)) 
 class CSGAREA_API UCSGStaticMeshComponent : public UCSGBaseComponent
 {
 	GENERATED_BODY()

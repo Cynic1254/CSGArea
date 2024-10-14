@@ -5,7 +5,6 @@
 
 #include "GeometryScript/MeshAssetFunctions.h"
 
-
 // Sets default values for this component's properties
 UCSGStaticMeshComponent::UCSGStaticMeshComponent()
 {
@@ -23,6 +22,7 @@ UCSGStaticMeshComponent::UCSGStaticMeshComponent()
 		MeshComponent->SetHiddenInGame(true);
 		MeshComponent->bIsEditorOnly = true;
 	}
+
 #endif
 }
 
@@ -31,6 +31,13 @@ UCSGStaticMeshComponent::UCSGStaticMeshComponent()
 void UCSGStaticMeshComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+#if WITH_EDITORONLY_DATA
+	if (MeshComponent)
+	{
+		MeshComponent->DestroyComponent();
+	}
+#endif
 
 	// ...
 }
@@ -49,13 +56,12 @@ void UCSGStaticMeshComponent::GetCollisionMesh_Implementation(UDynamicMesh* OutM
 	UGeometryScriptLibrary_StaticMeshFunctions::CopyMeshFromStaticMesh(Mesh, OutMesh, {}, {}, Result, Debug);
 }
 
-
 void UCSGStaticMeshComponent::OnRegister()
 {
 	Super::OnRegister();
 
 #if WITH_EDITORONLY_DATA
-	if (!IsRunningGame())
+	if (!IsRunningGame() && MeshComponent)
 	{
 		MeshComponent->SetStaticMesh(Mesh);
 	}
@@ -66,7 +72,7 @@ void UCSGStaticMeshComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
 {
 	Super::OnComponentDestroyed(bDestroyingHierarchy);
 #if WITH_EDITORONLY_DATA
-	if (!IsRunningGame())
+	if (!IsRunningGame() && MeshComponent)
 	{
 		MeshComponent->DestroyComponent();
 	}
