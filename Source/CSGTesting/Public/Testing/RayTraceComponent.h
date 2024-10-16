@@ -6,6 +6,7 @@
 #include "Components/SceneComponent.h"
 #include "RayTraceComponent.generated.h"
 
+class UBillboardComponent;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class CSGTESTING_API URayTraceComponent : public USceneComponent
@@ -22,12 +23,12 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Trace")
 	TObjectPtr<UBillboardComponent> Start;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Trace")
 	TObjectPtr<UBillboardComponent> End;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Trace")
 	bool FailWhenHit = false;
 
 	virtual void OnRegister() override;
